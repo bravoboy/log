@@ -21,29 +21,37 @@ struct logger {
 
 #define LOG_MAX_LEN 4096 /* max length of log message */
 
-#define log_debug(...) do {                                                 \
-    if (log_loggable(LOG_DEBUG) != 0) {                                     \
-        _log(__FILE__,__func__,__LINE__,LOG_DEBUG,__VA_ARGS__);             \
-    }                                                                       \
-} while (0)
-
-#define log_info(...) do {                                                 \
-    if (log_loggable(LOG_INFO) != 0) {                                     \
-        _log(__FILE__, __func__,__LINE__,LOG_INFO,__VA_ARGS__);            \
-    }                                                                       \
-} while (0)
-
-#define log_error(...) do {                                                 \
-    _log(__FILE__, __LINE__, __func__, __VA_ARGS__);                        \
-} while (0)
-
-#define log_warn(...) do {                                                  \
-    _log(__FILE__, __LINE__, __func__, __VA_ARGS__);                        \
-} while (0)
+#if defined __cplusplus
+extern "C" {
+#endif
 
 int log_init(int level, char *filename, int thread);
 void log_reopen(void);
 int log_loggable(int level);
 void _log(const char *file, const char *func, int line, int level, const char *fmt, ...);
 void log_stderr(const char *fmt, ...);
+
+#define log_debug(...) do {                                                 \
+    if (log_loggable(LOG_DEBUG) != 0) {                                     \
+        _log(__FILE__,__func__,__LINE__, LOG_DEBUG,__VA_ARGS__);            \
+    }                                                                       \
+} while (0)
+
+#define log_info(...) do {                                                  \
+    if (log_loggable(LOG_INFO) != 0) {                                      \
+        _log(__FILE__, __func__, __LINE__, LOG_INFO,__VA_ARGS__);           \
+    }                                                                       \
+} while (0)
+
+#define log_error(...) do {                                                 \
+    _log(__FILE__, __func__, __LINE__, LOG_ERR, __VA_ARGS__);               \
+} while (0)
+
+#define log_warn(...) do {                                                  \
+    _log(__FILE__, __func__, __LINE__, LOG_WARN, __VA_ARGS__);              \
+} while (0)
+
+#if defined __cplusplus
+}
+#endif
 #endif

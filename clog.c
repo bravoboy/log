@@ -14,11 +14,9 @@ static struct logger logger;
 static struct logger logger_wf;
 
 static char log_info[4][10] = {"ERR","WARN","INFO","DEBUG"};
-static pthread_mutex_t log_mutex; 
 char * translate(int level) {
     return log_info[level];
 }
-
 int log_init(int level, char *name,int thread) {
     struct logger *l = &logger;
     struct logger *l_wf = &logger_wf;
@@ -110,14 +108,15 @@ int myvprintf(char *buf, size_t size, const char *fmt, ...) {
 
     return n;
 }
+
 void _log(const char *file, const char* func,int line, int level, const char *fmt, ...) {
     struct logger *l = NULL;
-    if (level < LOG_WARN) {
+    if (level <= LOG_WARN) {
         l  = &logger_wf;
     } else {
         l  = &logger;
     }
-    int len, size, errno_save;
+    int len, size;
     char buf[LOG_MAX_LEN];
     va_list args;
     ssize_t n;
@@ -170,4 +169,3 @@ void log_stderr(const char *fmt, ...) {
 
     n = write(STDERR_FILENO, buf, len);
 }
-
