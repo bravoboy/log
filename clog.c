@@ -109,6 +109,21 @@ int myvprintf(char *buf, size_t size, const char *fmt, ...) {
     return n;
 }
 
+int myprintf(char *buf, size_t size, const char *fmt, va_list ap) {
+
+    if (fmt == NULL) {
+        return 0;
+    }   
+    int n = vsnprintf(buf, size, fmt, ap);
+    if (n <= 0) {
+        n = 0;
+    } else if (n >= (int) size) {
+        n = (int)(size - 1); 
+    }   
+
+    return n;
+}
+
 void _log(const char *file, const char* func,int line, int level, const char *fmt, ...) {
     struct logger *l = NULL;
     if (level <= LOG_WARN) {
@@ -138,7 +153,7 @@ void _log(const char *file, const char* func,int line, int level, const char *fm
     len += myvprintf(buf + len, size - len, "] %d %s %s %s:%d ", gettid(), translate(level), file, func, line);
 
     va_start(args, fmt);
-    len += myvprintf(buf + len, size - len, fmt, args);
+    len += myprintf(buf + len, size - len, fmt, args);
     va_end(args);
 
     buf[len++] = '\n';
@@ -162,7 +177,7 @@ void log_stderr(const char *fmt, ...) {
     size = LOG_MAX_LEN; /* size of output buffer */
 
     va_start(args, fmt);
-    len += myvprintf(buf + len, size - len, fmt, args);
+    len += myprintf(buf + len, size - len, fmt, args);
     va_end(args);
 
     buf[len++] = '\n';
