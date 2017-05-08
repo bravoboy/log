@@ -27,6 +27,7 @@ extern "C" {
 
 int log_init(int level, char *filename, int thread);
 void log_reopen(void);
+void log_close(void);
 int log_loggable(int level);
 void _log(const char *file, const char *func, int line, int level, const char *fmt, ...);
 void log_stderr(const char *fmt, ...);

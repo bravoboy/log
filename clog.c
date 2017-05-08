@@ -17,19 +17,41 @@ static char log_info[4][10] = {"ERR","WARN","INFO","DEBUG"};
 char * translate(int level) {
     return log_info[level];
 }
+void log_close(void) {
+    struct logger *l = &logger;
+    struct logger *l_wf = &logger_wf;
+    if (l->fd != STDERR_FILENO && l->fd > 0) {
+        if (l->log_mutex) {
+            pthread_mutex_lock(l->log_mutex);
+        }
+        close(l->fd);
+        if (l->log_mutex) {
+            pthread_mutex_unlock(l->log_mutex);
+        }
+        if (l_wf->log_mutex) {
+            pthread_mutex_lock(l_wf->log_mutex);
+        }
+        close(l_wf->fd);
+        if (l_wf->log_mutex) {
+            pthread_mutex_unlock(l_wf->log_mutex);
+        }
+        l->fd = -1;
+        l_wf->fd = -1;
+    }
+}
 int log_init(int level, char *name,int thread) {
     struct logger *l = &logger;
     struct logger *l_wf = &logger_wf;
 
     l->level = level;
-    memcpy(l->name,name,strlen(name));
-    memcpy(l_wf->name,name,strlen(name));
-    memcpy(l_wf->name + strlen(name),".wf",3);
     
     if (name == NULL || !strlen(name)) {
         l->fd = STDERR_FILENO;
         l_wf->fd = STDERR_FILENO;
     } else {
+        memcpy(l->name,name,strlen(name));
+        memcpy(l_wf->name,name,strlen(name));
+        memcpy(l_wf->name + strlen(name),".wf",3);
         l->fd = open(l->name, O_WRONLY | O_APPEND | O_CREAT, 0644);
         if (l->fd < 0) {
             log_stderr("opening log file '%s' failed: %s", name,strerror(errno));
@@ -57,7 +79,7 @@ void log_reopen(void) {
     struct logger *l = &logger;
     struct logger *l_wf = &logger_wf;
 
-    if (l->fd != STDERR_FILENO) {
+    if (l->fd != STDERR_FILENO && l->fd > 0) {
         if (l->log_mutex) {
             pthread_mutex_lock(l->log_mutex);
         }
@@ -80,7 +102,7 @@ void log_reopen(void) {
         if (l_wf->log_mutex) {
             pthread_mutex_unlock(l_wf->log_mutex);
         }
-    }   
+    }
 }
 
 int log_loggable(int level) {
